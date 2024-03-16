@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "linux_sort.h"
 #include "queue.h"
+
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -531,4 +533,27 @@ void q_shuffle(struct list_head *head)
             list_add(cmp, cur);
         }
     }
+}
+
+
+int cmp_function(const struct list_head *a, const struct list_head *b)
+{
+    element_t *a_entry = list_entry(a, element_t, list);
+    element_t *b_entry = list_entry(b, element_t, list);
+
+    if (strcmp(a_entry->value, b_entry->value) <= 0)
+        return 0;
+    else
+        return 1;
+}
+
+/* Sort elements of queue in ascending/descending order */
+void q_linux_sort(struct list_head *head, bool descend)
+{
+    if (!head || q_size(head) <= 1)
+        return;
+
+    list_sort(head, &cmp_function);
+    if (descend)
+        q_reverse(head);
 }
