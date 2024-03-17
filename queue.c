@@ -4,6 +4,7 @@
 
 #include "linux_sort.h"
 #include "queue.h"
+#include "tim_sort.h"
 
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
@@ -550,8 +551,6 @@ void q_shuffle(struct list_head *head)
     }
 }
 
-
-
 /* Sort elements of queue in ascending/descending order */
 void q_linux_sort(struct list_head *head, bool descend)
 {
@@ -559,6 +558,19 @@ void q_linux_sort(struct list_head *head, bool descend)
         return;
     int count = 0;
     list_sort(&count, head, &cmp_function);
+    printf("  Comparisons:    %d\n", count);
+    if (descend)
+        q_reverse(head);
+}
+
+
+/* Sort elements of queue in ascending/descending order */
+void q_tim_sort(struct list_head *head, bool descend)
+{
+    if (!head || q_size(head) <= 1)
+        return;
+    int count = 0;
+    timsort(&count, head, &cmp_function);
     printf("  Comparisons:    %d\n", count);
     if (descend)
         q_reverse(head);
