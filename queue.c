@@ -12,6 +12,21 @@
  *   cppcheck-suppress nullPointer
  */
 
+int cmp_function(void *priv,
+                 const struct list_head *a,
+                 const struct list_head *b)
+{
+    element_t *a_entry = list_entry(a, element_t, list);
+    element_t *b_entry = list_entry(b, element_t, list);
+
+    if (priv)
+        *((int *) priv) += 1;
+
+    if (strcmp(a_entry->value, b_entry->value) <= 0)
+        return 0;
+    else
+        return 1;
+}
 
 /* Create an empty queue */
 struct list_head *q_new()
@@ -536,16 +551,6 @@ void q_shuffle(struct list_head *head)
 }
 
 
-int cmp_function(const struct list_head *a, const struct list_head *b)
-{
-    element_t *a_entry = list_entry(a, element_t, list);
-    element_t *b_entry = list_entry(b, element_t, list);
-
-    if (strcmp(a_entry->value, b_entry->value) <= 0)
-        return 0;
-    else
-        return 1;
-}
 
 /* Sort elements of queue in ascending/descending order */
 void q_linux_sort(struct list_head *head, bool descend)
