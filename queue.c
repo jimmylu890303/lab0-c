@@ -557,8 +557,9 @@ void q_linux_sort(struct list_head *head, bool descend)
 {
     if (!head || q_size(head) <= 1)
         return;
-
-    list_sort(head, &cmp_function);
+    int count = 0;
+    list_sort(&count, head, &cmp_function);
+    printf("  Comparisons:    %d\n", count);
     if (descend)
         q_reverse(head);
 }
