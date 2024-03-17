@@ -291,7 +291,7 @@ void q_bubble_sort(struct list_head *head)
 }
 
 
-struct list_head *merge(struct list_head *l1, struct list_head *l2)
+struct list_head *merge(void *priv, struct list_head *l1, struct list_head *l2)
 {
     struct list_head l1_head, l2_head, result;
     INIT_LIST_HEAD(&result);
@@ -307,10 +307,8 @@ struct list_head *merge(struct list_head *l1, struct list_head *l2)
     struct list_head *cur;
 
     while (l1_len != 0 && l2_len != 0) {
-        element_t *l1_entry = list_entry(l1, __typeof__(*l1_entry), list);
-        element_t *l2_entry = list_entry(l2, __typeof__(*l2_entry), list);
 
-        if (strcmp(l1_entry->value, l2_entry->value) <= 0) {
+        if (cmp_function(priv, l1, l2) <= 0) {
             cur = l1;
             list_del(l1);
             l1 = l1->next;
@@ -338,7 +336,7 @@ struct list_head *merge(struct list_head *l1, struct list_head *l2)
     return cur;
 }
 
-struct list_head *mergeSortList(struct list_head *head)
+struct list_head *mergeSortList(void *priv, struct list_head *head)
 {
     if (!head || head->next == head)
         return head;
@@ -360,10 +358,10 @@ struct list_head *mergeSortList(struct list_head *head)
     slow->next = head;
     head->prev = slow;
 
-    struct list_head *l1 = mergeSortList(head);
-    struct list_head *l2 = mergeSortList(fast);
+    struct list_head *l1 = mergeSortList(priv, head);
+    struct list_head *l2 = mergeSortList(priv, fast);
 
-    return merge(l1, l2);
+    return merge(priv, l1, l2);
 }
 
 
@@ -379,8 +377,10 @@ void q_sort(struct list_head *head, bool descend)
     struct list_head *first = head->next;
     list_del_init(head);
 
-    struct list_head *result = mergeSortList(first);
+    int count = 0;
+    struct list_head *result = mergeSortList(&count, first);
     list_add_tail(head, result);
+    printf("  Comparisons:    %d\n", count);
     if (descend)
         q_reverse(head);
 }
