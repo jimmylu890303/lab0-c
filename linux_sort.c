@@ -3,14 +3,14 @@
 /*
 Reference from : https://github.com/torvalds/linux/blob/master/lib/list_sort.c
 */
-__attribute__((nonnull(1, 2, 3))) static struct list_head *
-merge(list_cmp_func_t cmp, struct list_head *a, struct list_head *b)
+__attribute__((nonnull(2, 3, 4))) static struct list_head *
+merge(void *priv, list_cmp_func_t cmp, struct list_head *a, struct list_head *b)
 {
     struct list_head *head = NULL, **tail = &head;
 
     for (;;) {
         /* if equal, take 'a' -- important for sort stability */
-        if (cmp(a, b) <= 0) {
+        if (cmp(priv, a, b) <= 0) {
             *tail = a;
             tail = &a->next;
             a = a->next;
@@ -31,7 +31,8 @@ merge(list_cmp_func_t cmp, struct list_head *a, struct list_head *b)
     return head;
 }
 
-__attribute__((nonnull(1, 2, 3, 4))) static void merge_final(
+__attribute__((nonnull(2, 3, 4, 5))) static void merge_final(
+    void *priv,
     list_cmp_func_t cmp,
     struct list_head *head,
     struct list_head *a,
@@ -42,7 +43,7 @@ __attribute__((nonnull(1, 2, 3, 4))) static void merge_final(
 
     for (;;) {
         /* if equal, take 'a' -- important for sort stability */
-        if (cmp(a, b) <= 0) {
+        if (cmp(priv, a, b) <= 0) {
             tail->next = a;
             a->prev = tail;
             tail = a;
@@ -72,7 +73,7 @@ __attribute__((nonnull(1, 2, 3, 4))) static void merge_final(
          * routine can invoke cond_resched() periodically.
          */
         if (!++count)
-            cmp(b, b);
+            cmp(priv, b, b);
         b->prev = tail;
         tail = b;
         b = b->next;
@@ -83,7 +84,8 @@ __attribute__((nonnull(1, 2, 3, 4))) static void merge_final(
     head->prev = tail;
 }
 
-__attribute__((nonnull(1, 2))) void list_sort(struct list_head *head,
+__attribute__((nonnull(2, 3))) void list_sort(void *priv,
+                                              struct list_head *head,
                                               list_cmp_func_t cmp)
 {
     struct list_head *list = head->next, *pending = NULL;
@@ -124,7 +126,7 @@ __attribute__((nonnull(1, 2))) void list_sort(struct list_head *head,
         if (bits) {
             struct list_head *a = *tail, *b = a->prev;
 
-            a = merge(cmp, b, a);
+            a = merge(priv, cmp, b, a);
             /* Install the merged result in place of the inputs */
             a->prev = b->prev;
             *tail = a;
@@ -146,9 +148,9 @@ __attribute__((nonnull(1, 2))) void list_sort(struct list_head *head,
 
         if (!next)
             break;
-        list = merge(cmp, pending, list);
+        list = merge(priv, cmp, pending, list);
         pending = next;
     }
     /* The final merge, rebuilding prev links */
-    merge_final(cmp, head, pending, list);
+    merge_final(priv, cmp, head, pending, list);
 }
